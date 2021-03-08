@@ -28,8 +28,8 @@ def main():
     disp = upd.dispatcher
 
     # ogni volta che si crea un comando che inizia con / bisogna aggiungere un handler come segue:
-    disp.add_handler(CommandHandler("remindme", remindme()))
-    disp.add_handler(CommandHandler("remindingroup", remindingroup()))
+    disp.add_handler(CommandHandler("remindme", remindme))
+    disp.add_handler(CommandHandler("remindingroup", remindingroup))
 
     upd.start_polling()
 
