@@ -1,13 +1,17 @@
 # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions-%E2%80%93-Your-first-Bot
 # https://python-telegram-bot.readthedocs.io/en/stable/index.html
+# https://pypi.org/project/tinydb/
 
 from telegram.ext import Updater, CommandHandler
+from tinydb import TinyDB, Query
 import sys
 
-# token fornito dal BotFather
+# token fornito dal BotFather passato come argomento del comando di esecuzione del bot
 TOKEN = sys.argv[1]
 
 #il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
+db=TinyDB('/database/botREMINDbot_db.json')
+# TODO: aggiungere touch /database/botREMINDbot_db.json al Dockerfile
 
 #TODO: riceve comando remind sia da gruppi che da chat
 
