@@ -7,20 +7,22 @@ import sys
 # token fornito dal BotFather
 TOKEN = sys.argv[1]
 
+#il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
+
 #TODO: riceve comando remind sia da gruppi che da chat
 
 # estrae argomento dividendo la stringa in un array di parole, poi prende il secondo elemento della stringa (il primo è il comando)
 def estrai_argomento(text):
     return text.split()[1].strip()
 
-
+#remind di un messaggio in chat privata
 def remindme(update, context):
     #TODO: salva in database id del messaggio, id dello User e data
     ...
     #update.message.
 
 
-# come si comporta quando riceve un messaggio di testo in un canale
+# remind di un messaggio direttamente nel gruppo
 def remindingroup(update, context):
     #TODO: salva in database id del messaggio, id del gruppo e data
     ...
