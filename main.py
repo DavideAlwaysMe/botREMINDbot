@@ -7,6 +7,7 @@ import sys
 # token fornito dal BotFather
 TOKEN = sys.argv[1]
 
+#TODO: riceve comando remind sia da gruppi che da chat
 
 # estrae argomento dividendo la stringa in un array di parole, poi prende il secondo elemento della stringa (il primo è il comando)
 def estrai_argomento(text):
@@ -14,12 +15,14 @@ def estrai_argomento(text):
 
 
 def remindme(update, context):
+    #TODO: salva in database id del messaggio, id dello User e data
     ...
     #update.message.
 
 
 # come si comporta quando riceve un messaggio di testo in un canale
 def remindingroup(update, context):
+    #TODO: salva in database id del messaggio, id del gruppo e data
     ...
 
 
