@@ -53,16 +53,17 @@ def is_int(s):
 # riceve come argomento una stringa, restituisce un oggetto datetime.timedelta o datetime.time
 # traduce in datetime.timedelta espressioni come 3 min, 3 h, 3 d, tomorrow
 # traduce in datetime.time espressioni come 01/01/01, 17:10 oppure 01/01/01 10:15
+# gettime deve essere usato direttamente in JobQueue e non nel salvataggio sul db
 def gettime(argument):
     print(str(argument))
 
     if len(argument)>1:
         #se l'array argument contiene più di un argomento allora può essere sia timedelta che una data con sia giorno che ora oppure da errore
-        if argument[1]== 'min' and argument[0].is_int:
+        if argument[1]== 'min' and is_int(argument[0]):
             data=timedelta(minutes=argument[0])
-        elif argument[1]== 'h'and argument[0].is_int:
+        elif argument[1]== 'h'and is_int(argument[0]):
             data = timedelta(hours=argument[0])
-        elif argument[1]== 'd'and argument[0].is_int:
+        elif argument[1]== 'd'and is_int(argument[0]):
             data=timedelta(days=argument[0])
         elif is_date(f'{argument[0]} {argument[1]}'):
             data=parse(f'{argument[0]} {argument[1]}')
@@ -79,14 +80,44 @@ def gettime(argument):
 
     return data
 
+#stabilisce se l'argomento è una data accettabile e si può salvare nel database
+def is_ok(argument):
+    if len(argument)>1:
+        #se l'array argument contiene più di un argomento allora può essere sia timedelta che una data con sia giorno che ora oppure da errore
+        if argument[1]== 'min' and is_int(argument[0]):
+            return True
+        elif argument[1]== 'h'and is_int(argument[0]):
+            return True
+        elif argument[1]== 'd'and is_int(argument[0]):
+            return True
+        elif is_date(f'{argument[0]} {argument[1]}'):
+            return True
+        else:
+            return False
+    elif len(argument)==1:
+        #se l'array argument contiene un solo elemento deve essere per forza una data altrimenti da errore
+        if is_date(argument[0]):
+            return True
+        else:
+            return False
+    else:
+        #0 argomenti non hanno senso
+        return False
+
 
 # remind di un messaggio in chat privata
+# salva in database id del messaggio, id della chat, id dello User e data
+# avverte in privato l'utente se il reminder è salvato con successo o meno
 def remindme(update, context):
-    #db.insert({'message_id': update.message.reply_to_message.message_id, 'user_id': update.message.reply_to_message.from_user.id,'data': gettime(estrai_argomento(update.message.text))})
-    print(str({'message_id': update.message.reply_to_message.message_id, 'user_id': update.message.reply_to_message.from_user.id,'data': gettime(estrai_argomento(update.message.text))}))
-    # TODO: salva in database id del messaggio, id dello User e data
-    ...
-    # update.message.
+    argument=estrai_argomento(update.message.text)
+    if(is_ok(argument)):
+        db.insert({'message_id': update.message.reply_to_message.message_id,'chat_id': update.message.reply_to_message.chat.id,'user_id': update.message.reply_to_message.from_user.id,'data': argument})
+        print(str({'message_id': update.message.reply_to_message.message_id,'chat_id': update.message.reply_to_message.chat.id, 'user_id': update.message.reply_to_message.from_user.id,'data': argument}))
+        #manda un messaggio per notificare che il reminder è stato impostato con successo
+        context.bot.send_message(update.message.from_user.id,'Reminder has been saved successfully')
+    else:
+        print('Format not valid')
+        context.bot.send_message(update.message.from_user.id,'Reminder format was not correct use /help for more')
 
 # remind di un messaggio direttamente nel gruppo
 def remindingroup(update, context):
