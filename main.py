@@ -20,8 +20,6 @@ db = TinyDB('/home/dav/PycharmProjects/botREMINDbot/database.json')
 
 # TODO: aggiungere touch /database/botREMINDbot_db.json al Dockerfile
 
-# TODO: riceve comando remind sia da gruppi che da chat
-
 # estrae argomento dividendo la stringa in un array di parole, e levando il primo elemento della stringa (il comando)
 def estrai_argomento(text):
     argument=text.split()
@@ -111,8 +109,8 @@ def is_ok(argument):
 def remindme(update, context):
     argument=estrai_argomento(update.message.text)
     if(is_ok(argument)):
-        db.insert({'message_id': update.message.reply_to_message.message_id,'chat_id': update.message.reply_to_message.chat.id,'user_id': update.message.reply_to_message.from_user.id,'data': argument})
-        print(str({'message_id': update.message.reply_to_message.message_id,'chat_id': update.message.reply_to_message.chat.id, 'user_id': update.message.reply_to_message.from_user.id,'data': argument}))
+        db.insert({'message_id': update.message.reply_to_message.message_id,'chat_id': update.message.reply_to_message.chat.id,'to_chat_id': update.message.from_user.id,'data': argument})
+        print(str({'message_id': update.message.reply_to_message.message_id,'chat_id': update.message.reply_to_message.chat.id, 'to_chat_id': update.message.from_user.id,'data': argument}))
         #manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.from_user.id,'Reminder has been saved successfully')
     else:
@@ -120,10 +118,18 @@ def remindme(update, context):
         context.bot.send_message(update.message.from_user.id,'Reminder format was not correct use /help for more')
 
 # remind di un messaggio direttamente nel gruppo
+# salva in database id del messaggio, id della chat di provenienza,id del gruppo e data
+# avverte sul gruppo se il reminder è salvato con successo o meno
 def remindingroup(update, context):
-#    db.insert({'message_id': update.message.reply_to_message.message_id, 'user_id': update.message.reply_to_message.from_user.id, 'date': })
-    # TODO: salva in database id del messaggio, id del gruppo e data
-    ...
+    argument=estrai_argomento(update.message.text)
+    if(is_ok(argument)):
+        db.insert({'message_id': update.message.reply_to_message.message_id,'chat_id': update.message.reply_to_message.chat.id,'to_chat_id': update.message.chat.id,'data': argument})
+        print(str({'message_id': update.message.reply_to_message.message_id,'chat_id': update.message.reply_to_message.chat.id, 'to_chat_id': update.message.chat.id,'data': argument}))
+        #manda un messaggio per notificare che il reminder è stato impostato con successo
+        context.bot.send_message(update.message.chat.id,'Reminder has been saved successfully')
+    else:
+        print('Format not valid')
+        context.bot.send_message(update.message.chat.id,'Reminder format was not correct use /help for more')
 
 
 def main():
