@@ -1,6 +1,7 @@
 # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions-%E2%80%93-Your-first-Bot
 # https://python-telegram-bot.readthedocs.io/en/stable/index.html
 # https://pypi.org/project/tinydb/
+#https://pypi.org/project/python-crontab/
 
 from telegram.ext import Updater, CommandHandler
 from tinydb import TinyDB, Query
@@ -117,6 +118,7 @@ def remindme(update, context):
     if(is_ok(argument)):
         db.insert({'message_id': update.message.reply_to_message.message_id,'from_chat_id': update.message.reply_to_message.chat.id,'chat_id': update.message.from_user.id,'data': argument})
         print(str({'message_id': update.message.reply_to_message.message_id,'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,'data': argument}))
+        #TODO: aggiungere comando crontab
         #manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.from_user.id,'Reminder has been saved successfully')
     else:
@@ -131,6 +133,7 @@ def remindingroup(update, context):
     if(is_ok(argument)):
         db.insert({'message_id': update.message.reply_to_message.message_id,'from_chat_id': update.message.reply_to_message.chat.id,'chat_id': update.message.chat.id,'data': argument})
         print(str({'message_id': update.message.reply_to_message.message_id,'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,'data': argument}))
+        # TODO: aggiungere comando crontab
         #manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.chat.id,'Reminder has been saved successfully')
     else:
