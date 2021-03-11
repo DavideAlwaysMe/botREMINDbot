@@ -1,2 +1,0 @@
-curl -X POST -H 'Content-Type: application/json' -d '{"chat_id": "-528376630","from_chat_id": "-528376630","message_id": "22"}' \
-   https://api.telegram.org/bot1697718523:AAE15Wk_oiQSXDiQgzyPagtnMyzRQvvdJis/forwardMessage

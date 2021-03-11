@@ -31,7 +31,7 @@ def estrai_argomento(text):
 
 #crea il comando partendo dai dati necessari per forwardMessage, da usare quando si crea il crontab
 def crea_comando(message_id,from_chat_id,chat_id) :
-    return "curl -X POST -H 'Content-Type: application/json' -d '{\"chat_id\": \""+str(chat_id)+"\",\"from_chat_id\": \""+str(from_chat_id)+"\",\"message_id\": \""+str(message_id)+"\"}' https://api.telegram.org/bot1697718523:AAE15Wk_oiQSXDiQgzyPagtnMyzRQvvdJis/forwardMessage"
+    return "curl -X POST -H 'Content-Type: application/json' -d '{\"chat_id\": \""+str(chat_id)+"\",\"from_chat_id\": \""+str(from_chat_id)+"\",\"message_id\": \""+str(message_id)+"\"}' https://api.telegram.org/bot"+TOKEN+"/forwardMessage"
 
 
 def is_date(string, fuzzy=False):
