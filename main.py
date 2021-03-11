@@ -5,13 +5,18 @@
 
 from telegram.ext import Updater, CommandHandler
 from tinydb import TinyDB, Query
-from datetime import timedelta,datetime
+from datetime import timedelta,datetime, date, time
 from dateutil.parser import parse
 from crontab import CronTab
 import sys
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
 TOKEN = sys.argv[1]
+# user passato come parametro
+USER= sys.argv[2]
+
+#il bot programma l'invio dei messaggi con crontab
+cron = CronTab(user=USER)
 
 # il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
 #db = TinyDB('/database/botREMINDbot_db.json')
@@ -56,31 +61,6 @@ def is_int(s):
     except ValueError:
         return False
 
-#stabilisce se l'argomento è una data accettabile e si può salvare nel database
-def is_ok(argument):
-    if len(argument)>1:
-        #se l'array argument contiene più di un argomento allora può essere sia timedelta che una data con sia giorno che ora oppure da errore
-        if argument[1]== 'min' and is_int(argument[0]):
-            return True
-        elif argument[1]== 'h'and is_int(argument[0]):
-            return True
-        elif argument[1]== 'd'and is_int(argument[0]):
-            return True
-        elif is_date(f'{argument[0]} {argument[1]}'):
-            return True
-        else:
-            return False
-    elif len(argument)==1:
-        #se l'array argument contiene un solo elemento deve essere per forza una data altrimenti da errore
-        if is_date(argument[0]):
-            return True
-        else:
-            return False
-    else:
-        #0 argomenti non hanno senso
-        return False
-
-
 # riceve come argomento una stringa, restituisce un oggetto datetime.timedelta o datetime.time
 # traduce in datetime.timedelta espressioni come 3 min, 3 h, 3 d, tomorrow
 # traduce in datetime.time espressioni come 01/01/01, 17:10 oppure 01/01/01 10:15
@@ -90,23 +70,25 @@ def gettime(argument):
     if len(argument)>1:
         #se l'array argument contiene più di un argomento allora può essere sia timedelta che una data con sia giorno che ora oppure da errore
         if argument[1]== 'min' and is_int(argument[0]):
-            data=timedelta(minutes=argument[0])
+            data=datetime.now()+timedelta(minutes=int(argument[0]))
         elif argument[1]== 'h'and is_int(argument[0]):
-            data = timedelta(hours=argument[0])
+            data =datetime.now()+timedelta(hours=int(argument[0]))
         elif argument[1]== 'd'and is_int(argument[0]):
-            data=timedelta(days=argument[0])
+            #TODO: verificare che ha senso
+            data=datetime.now()+timedelta(days=int(argument[0]))
         elif is_date(f'{argument[0]} {argument[1]}'):
             data=parse(f'{argument[0]} {argument[1]}')
         else:
-            raise Exception('Command argument was not written in a valid format')
+            raise TypeError('Command argument was not written in a valid format')
     elif len(argument)==1:
         #se l'array argument contiene un solo elemento deve essere per forza una data altrimenti da errore
         if is_date(argument[0]):
             data = parse(argument[0])
         else:
-            raise Exception('Command argument was not written in a valid format')
+            raise TypeError('Command argument was not written in a valid format')
     else:
-        raise Exception('Command argument was not written in a valid format')
+        #0 argomenti non hanno senso
+        raise TypeError('Command argument was not written in a valid format')
 
     return data
 
@@ -115,28 +97,37 @@ def gettime(argument):
 # avverte in privato l'utente se il reminder è salvato con successo o meno
 def remindme(update, context):
     argument=estrai_argomento(update.message.text)
-    if(is_ok(argument)):
+    try:
+        #aggiungere comando crontab
+        scheduled_message=cron.new(command=crea_comando(update.message.reply_to_message.message_id,update.message.reply_to_message.chat.id,update.message.from_user.id))
+        scheduled_message.setall(gettime(argument))
+        cron.write()
+
         db.insert({'message_id': update.message.reply_to_message.message_id,'from_chat_id': update.message.reply_to_message.chat.id,'chat_id': update.message.from_user.id,'data': argument})
         print(str({'message_id': update.message.reply_to_message.message_id,'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,'data': argument}))
-        #TODO: aggiungere comando crontab
         #manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.from_user.id,'Reminder has been saved successfully')
-    else:
+    except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.from_user.id,'Reminder format was not correct use /help for more')
+
 
 # remind di un messaggio direttamente nel gruppo
 # salva in database id del messaggio, id della chat di provenienza,id del gruppo e data
 # avverte sul gruppo se il reminder è salvato con successo o meno
 def remindingroup(update, context):
     argument=estrai_argomento(update.message.text)
-    if(is_ok(argument)):
+    try:
+        #aggiungere comando crontab
+        scheduled_message=cron.new(crea_comando(update.message.reply_to_message.message_id,update.message.reply_to_message.chat.id,update.message.chat.id))
+        scheduled_message.setall(gettime(argument))
+        cron.write()
+
         db.insert({'message_id': update.message.reply_to_message.message_id,'from_chat_id': update.message.reply_to_message.chat.id,'chat_id': update.message.chat.id,'data': argument})
         print(str({'message_id': update.message.reply_to_message.message_id,'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,'data': argument}))
-        # TODO: aggiungere comando crontab
         #manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.chat.id,'Reminder has been saved successfully')
-    else:
+    except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id,'Reminder format was not correct use /help for more')
 
