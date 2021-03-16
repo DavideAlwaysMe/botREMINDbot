@@ -20,5 +20,7 @@ RUN apt-get update && apt-get -y install cron
 # install dependencies
 RUN pip3 install -r requirements.txt
 
+RUN touch /database/botREMINDbot_db.json
+
 #avviare il bot e aggiornare il crontab
-CMD sh start.sh ${TOKEN} root
+CMD ["sh", "start.sh", "${TOKEN}", "root"]

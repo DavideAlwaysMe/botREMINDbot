@@ -1,13 +1,11 @@
 from crontab import CronTab
-from tinydb import TinyDB, Query, where
+from tinydb import TinyDB, Query
 from main import get_time, crea_comando
 from datetime import datetime
 import sys
 
 # il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
-# db = TinyDB('/database/botREMINDbot_db.json')
-# TODO: rimettere precedente percorso del database
-db = TinyDB('/home/dav/PycharmProjects/botREMINDbot/database.json')
+db = TinyDB('/database/botREMINDbot_db.json')
 lista_messaggi = db.all()
 Messaggio = Query()
 

@@ -19,15 +19,10 @@ USER = sys.argv[2]
 cron = CronTab(user=USER)
 
 # il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
-# db = TinyDB('/database/botREMINDbot_db.json')
-# TODO: rimettere precedente percorso del database
-db = TinyDB('/home/dav/PycharmProjects/botREMINDbot/database.json')
+db = TinyDB('/database/botREMINDbot_db.json')
 
 
 # all'inizio dell'esecuzione ricontrolla il db e crea nuove
-
-# TODO: aggiungere touch /database/botREMINDbot_db.json al Dockerfile
-# TODO: aggiornare crontab alla prima esecuzione del bot usando il database
 
 # estrae argomento dividendo la stringa in un array di parole, e levando il primo elemento della stringa (il comando)
 def estrai_argomento(text):
@@ -159,7 +154,6 @@ def main():
     upd = Updater(TOKEN, use_context=True)
     disp = upd.dispatcher
 
-    # ogni volta che si crea un comando che inizia con / bisogna aggiungere un handler come segue:
     disp.add_handler(CommandHandler("remindme", remindme))
     disp.add_handler(CommandHandler("remindingroup", remindingroup))
     disp.add_handler(CommandHandler("help", help))
