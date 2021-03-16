@@ -11,8 +11,10 @@ db = TinyDB('/home/dav/PycharmProjects/botREMINDbot/database.json')
 lista_messaggi = db.all()
 Messaggio = Query()
 
+# token fornito dal BotFather passato come argomento del comando di esecuzione del bot
+TOKEN = sys.argv[1]
 # user passato come parametro
-USER = sys.argv[1]
+USER = sys.argv[2]
 
 # il bot programma l'invio dei messaggi con crontab
 cron = CronTab(user=USER)
@@ -25,6 +27,6 @@ for messaggio in lista_messaggi:
         # aggiungere comando crontab
         data = get_time(messaggio.data)
         scheduled_message = cron.new(
-            command=crea_comando(messaggio.message_id, messaggio.from_chat_id, messaggio.chat))
+            command=crea_comando(TOKEN,messaggio.message_id, messaggio.from_chat_id, messaggio.chat))
         scheduled_message.setall(data)
         cron.write()

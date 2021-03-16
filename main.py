@@ -37,10 +37,10 @@ def estrai_argomento(text):
 
 
 # crea il comando partendo dai dati necessari per forwardMessage, da usare quando si crea il crontab
-def crea_comando(message_id, from_chat_id, chat_id):
+def crea_comando(token,message_id, from_chat_id, chat_id):
     return "curl -X POST -H 'Content-Type: application/json' -d '{\"chat_id\": \"" + str(
         chat_id) + "\",\"from_chat_id\": \"" + str(from_chat_id) + "\",\"message_id\": \"" + str(
-        message_id) + "\"}' https://api.telegram.org/bot" + TOKEN + "/forwardMessage"
+        message_id) + "\"}' https://api.telegram.org/bot" + token + "/forwardMessage"
 
 
 def is_date(string, fuzzy=False):
@@ -105,7 +105,7 @@ def remindme(update, context):
         # aggiungere comando crontab
         data = get_time(argument)
         scheduled_message = cron.new(
-            command=crea_comando(update.message.reply_to_message.message_id, update.message.reply_to_message.chat.id,
+            command=crea_comando(TOKEN,update.message.reply_to_message.message_id, update.message.reply_to_message.chat.id,
                                  update.message.from_user.id))
         scheduled_message.setall(data)
         cron.write()
@@ -131,8 +131,8 @@ def remindingroup(update, context):
     try:
         # aggiungere comando crontab
         data = get_time(argument)
-        scheduled_message = cron.new(
-            crea_comando(update.message.reply_to_message.message_id, update.message.reply_to_message.chat.id,
+        scheduled_message = cron.new(command=
+            crea_comando(TOKEN,update.message.reply_to_message.message_id, update.message.reply_to_message.chat.id,
                          update.message.chat.id))
         scheduled_message.setall(data)
         cron.write()
