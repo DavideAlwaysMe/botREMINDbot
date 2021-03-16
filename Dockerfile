@@ -5,7 +5,7 @@ FROM python:3.8
 RUN git clone https://github.com/DavideAlwaysMe/botREMINDbot
 
 # set the working directory in the container
-WORKDIR /botremindbot
+WORKDIR /botREMINDbot
 
 #il token del bot è passato come parametro nel comando di esecuzione del bot
 ARG TOKEN
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get -y install cron
 # install dependencies
 RUN pip3 install -r requirements.txt
 
-RUN touch /database/botREMINDbot_db.json
+RUN touch /database
 
 #avviare il bot e aggiornare il crontab
 CMD ["sh", "start.sh", "${TOKEN}", "root"]
