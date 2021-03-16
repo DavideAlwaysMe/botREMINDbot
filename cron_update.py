@@ -10,7 +10,7 @@ lista_messaggi = db.all()
 Messaggio = Query()
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
-TOKEN = sys.argv[1]
+TOKEN = str(sys.argv[1])
 # user passato come parametro
 USER = sys.argv[2]
 

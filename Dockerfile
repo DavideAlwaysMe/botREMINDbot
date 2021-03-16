@@ -2,7 +2,7 @@
 FROM python:3.8
 
 #clono il repository
-RUN git clone https://github.com/DavideAlwaysMe/botREMINDbot
+RUN git clone https://github.com/DavideAlwaysMe/botREMINDbot.git
 
 # set the working directory in the container
 WORKDIR /botREMINDbot
@@ -19,8 +19,6 @@ RUN apt-get update && apt-get -y install cron
 
 # install dependencies
 RUN pip3 install -r requirements.txt
-
-RUN touch /database
 
 #avviare il bot e aggiornare il crontab
 CMD ["sh", "start.sh", "${TOKEN}", "root"]

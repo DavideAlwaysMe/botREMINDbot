@@ -11,7 +11,7 @@ from crontab import CronTab
 import sys
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
-TOKEN = sys.argv[1]
+TOKEN = str(sys.argv[1])
 # user passato come parametro
 USER = sys.argv[2]
 
@@ -20,7 +20,6 @@ cron = CronTab(user=USER)
 
 # il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
 db = TinyDB('/database/botREMINDbot_db.json')
-
 
 # all'inizio dell'esecuzione ricontrolla il db e crea nuove
 
