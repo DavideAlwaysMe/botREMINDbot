@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#clono il repository
+git clone https://github.com/DavideAlwaysMe/botREMINDbot.git
+cron -f &
 echo $1 $2
-python3 main.py $1 $2
-python3 cron_update.py $1 $2
+python3 /botREMINDbot/cron_update.py $1 $2
+python3 /botREMINDbot/main.py $1 $2

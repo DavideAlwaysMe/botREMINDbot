@@ -106,10 +106,10 @@ def remindme(update, context):
 
         db.insert({'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
-                   'data': data.strftime("%m/%d/%Y, %H:%M:%S")})
+                   'data': data.strftime("%m/%d/%Y %H:%M:%S")})
         print(str({'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
-                   'data': data.strftime("%m/%d/%Y, %H:%M:%S")}))
+                   'data': data.strftime("%m/%d/% %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.from_user.id, 'Reminder has been saved successfully.')
     except TypeError:
@@ -133,10 +133,10 @@ def remindingroup(update, context):
 
         db.insert({'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
-                   'data': data.strftime("%m/%d/%Y, %H:%M:%S")})
+                   'data': data.strftime("%m/%d/%Y\ %H:%M:%S")})
         print(str({'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
-                   'data': data.strftime("%m/%d/%Y, %H:%M:%S")}))
+                   'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.chat.id, 'Reminder has been saved successfully.')
     except TypeError:
