@@ -115,7 +115,7 @@ def remindme(update, context):
                    'data': data.strftime("%m/%d/% %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
-        context.bot.send_message(update.message.from_user.id, f'Reminder has been saved successfully for ${data.strftime("%m/%d/%Y %H:%M:%S")}.')
+        context.bot.send_message(update.message.from_user.id, f'Reminder has been saved successfully for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
@@ -143,7 +143,7 @@ def remindingroup(update, context):
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
-        context.bot.send_message(update.message.chat.id, f'Reminder has been saved successfully for ${data.strftime("%m/%d/%Y %H:%M:%S")}.')
+        context.bot.send_message(update.message.chat.id, f'Reminder has been saved successfully for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id, 'Reminder format was not correct use /help for more.')
