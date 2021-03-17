@@ -10,6 +10,9 @@ from dateutil.parser import parse
 from crontab import CronTab
 import sys
 
+#TODO:eliminare i reminder eventualmente
+#TODO: aggiungere codici identificativi dei reminder (anche per poterli eliminare
+
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
 TOKEN = str(sys.argv[1])
 # user passato come parametro
@@ -111,9 +114,11 @@ def remindme(update, context):
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
                    'data': data.strftime("%m/%d/% %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
-        context.bot.send_message(update.message.from_user.id, 'Reminder has been saved successfully.')
+        context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
+        context.bot.send_message(update.message.from_user.id, f'Reminder has been saved successfully for ${data.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
+        context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id, 'Reminder format was not correct use /help for more.')
 
 
@@ -138,14 +143,27 @@ def remindingroup(update, context):
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
-        context.bot.send_message(update.message.chat.id, 'Reminder has been saved successfully.')
+        context.bot.send_message(update.message.chat.id, f'Reminder has been saved successfully for ${data.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id, 'Reminder format was not correct use /help for more.')
 
 
 def help(update, context):
-    # TODO: comando help
+    help_text='''Hi, this bot helps you setting up reminders.
+    To use it correctly you should add it in your group.
+    There are two available commands:
+    - /remindme *date* - Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam.
+    - /remindingroup *date* - Use it replying to a message and the bot will forward it to the group at the desired date or time.
+    About command arguments
+    You can write the remind expiry in a lot of different ways:
+    -as a date e.g 03/01/2021 to set a reminder for the 1 of March
+    -as a time e.g. 5:00 pm to set a reminder for today at 5 pm
+    -with bot a date and a time e.g. 03/17/2021 22:38:53
+    -as a duration e.g 1 min or 1 h or 1 d to set a reminder for 1 minute from now, or for 1 hour from now, or tomorrow
+    -you can also try using a different syntax and see if the bot correctly understands you.'''
+    context.bot.send_message(update.message.chat.id,help_text)
+
     ...
 
 
