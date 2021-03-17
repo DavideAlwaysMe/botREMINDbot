@@ -151,17 +151,20 @@ def remindingroup(update, context):
 
 def help(update, context):
     help_text='''Hi, this bot helps you setting up reminders.
-    To use it correctly you should add it in your group.
-    There are two available commands:
-    - /remindme *date* - Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam.
-    - /remindingroup *date* - Use it replying to a message and the bot will forward it to the group at the desired date or time.
-    About command arguments
-    You can write the remind expiry in a lot of different ways:
-    -as a date e.g 03/01/2021 to set a reminder for the 1 of March
-    -as a time e.g. 5:00 pm to set a reminder for today at 5 pm
-    -with bot a date and a time e.g. 03/17/2021 22:38:53
-    -as a duration e.g 1 min or 1 h or 1 d to set a reminder for 1 minute from now, or for 1 hour from now, or tomorrow
-    -you can also try using a different syntax and see if the bot correctly understands you.'''
+To use it correctly you should add it in your group.
+
+Available commands
+There are two available commands:
+- /remindme *date* - Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam.
+- /remindingroup *date* - Use it replying to a message and the bot will forward it to the group at the desired date or time.
+
+About command arguments
+You can write the remind expiry in a lot of different ways:
+- as a date e.g 03/01/2021 to set a reminder for the 1 of March
+- as a time e.g. 5:00 pm to set a reminder for today at 5 pm
+- with bot a date and a time e.g. 03/17/2021 22:38:53
+- as a duration e.g 1 min or 1 h or 1 d to set a reminder for 1 minute from now, or for 1 hour from now, or tomorrow
+- you can also try using a different syntax and see if the bot correctly understands you.'''
     context.bot.send_message(update.message.chat.id,help_text)
 
     ...
