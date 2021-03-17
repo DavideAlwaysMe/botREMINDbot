@@ -19,9 +19,9 @@ USER = sys.argv[2]
 cron = CronTab(user=USER)
 
 for messaggio in lista_messaggi:
-    print(messaggio['data'])
+    print('Found scheduled message in database '+messaggio['data'])
     if (parse(messaggio['data']) < datetime.now()):
-        print(messaggio['data'])
+        print('Deleted old message scheduled for '+messaggio['data'])
         # elimino messsaggio dal database se scaduto
         db.remove(Messaggio['data'] == messaggio['data'])
     else:
@@ -31,3 +31,4 @@ for messaggio in lista_messaggi:
             command=crea_comando(TOKEN,messaggio['message_id'], messaggio['from_chat_id'], messaggio['chat_id']))
         scheduled_message.setall(data)
         cron.write()
+        print('Succesfully scheduled reminder found in database')
