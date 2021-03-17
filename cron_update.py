@@ -28,6 +28,6 @@ for messaggio in lista_messaggi:
         # aggiungere comando crontab
         data = parse(messaggio['data'])
         scheduled_message = cron.new(
-            command=crea_comando(TOKEN,messaggio.message_id, messaggio.from_chat_id, messaggio.chat))
+            command=crea_comando(TOKEN,messaggio['message_id'], messaggio['from_chat_id'], messaggio['chat']))
         scheduled_message.setall(data)
         cron.write()
