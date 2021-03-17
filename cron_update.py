@@ -19,7 +19,7 @@ cron = CronTab(user=USER)
 
 for messaggio in lista_messaggi:
     print(messaggio['data'])
-    if (get_time(messaggio['data']) < datetime.now()):
+    if (get_time(messaggio['data'].split) < datetime.now()):
         print(messaggio['data'])
         # elimino messsaggio dal database se scaduto
         db.remove(Messaggio['data'] == messaggio['data'])
