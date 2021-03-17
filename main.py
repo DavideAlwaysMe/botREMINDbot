@@ -11,7 +11,9 @@ from crontab import CronTab
 import sys
 
 #TODO:eliminare i reminder eventualmente
-#TODO: aggiungere codici identificativi dei reminder (anche per poterli eliminare
+#TODO: fuso orario
+#TODO: comando /start
+#TODO: aggiungere codici identificativi dei reminder (anche per poterli eliminare)
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
 TOKEN = str(sys.argv[1])
