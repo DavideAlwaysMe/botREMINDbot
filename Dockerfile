@@ -1,9 +1,6 @@
 # set base image (host OS)
 FROM python:3.8
 
-# set the working directory in the container
-RUN mkdir botREMINDbot
-
 #il token del bot è passato come parametro nel comando di esecuzione del bot
 ARG TOKEN
 ENV TOKEN ${TOKEN}

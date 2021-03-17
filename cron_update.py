@@ -18,9 +18,11 @@ USER = sys.argv[2]
 cron = CronTab(user=USER)
 
 for messaggio in lista_messaggi:
+    print(messaggio['data'])
     if (get_time(messaggio['data']) < datetime.now()):
+        print(messaggio['data'])
         # elimino messsaggio dal database se scaduto
-        db.remove(Messaggio.data == messaggio['data'])
+        db.remove(Messaggio['data'] == messaggio['data'])
     else:
         # aggiungere comando crontab
         data = get_time(messaggio.data)
