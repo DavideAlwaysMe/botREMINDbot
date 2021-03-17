@@ -1,6 +1,7 @@
 from crontab import CronTab
 from tinydb import TinyDB, Query
-from main import get_time, crea_comando
+from main import crea_comando
+from dateutil.parser import parse
 from datetime import datetime
 import sys
 
@@ -19,13 +20,13 @@ cron = CronTab(user=USER)
 
 for messaggio in lista_messaggi:
     print(messaggio['data'])
-    if (get_time(messaggio['data'].split) < datetime.now()):
+    if (parse(messaggio['data']) < datetime.now()):
         print(messaggio['data'])
         # elimino messsaggio dal database se scaduto
         db.remove(Messaggio['data'] == messaggio['data'])
     else:
         # aggiungere comando crontab
-        data = get_time(messaggio.data)
+        data = parse(messaggio.data)
         scheduled_message = cron.new(
             command=crea_comando(TOKEN,messaggio.message_id, messaggio.from_chat_id, messaggio.chat))
         scheduled_message.setall(data)
