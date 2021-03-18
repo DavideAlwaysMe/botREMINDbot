@@ -170,6 +170,7 @@ def remindingroup(update, context):
                                                   update.message.reply_to_message.chat.id,
                                                   update.message.chat.id), comment=job_id)
         scheduled_message.setall(data)
+        cron.write()
 
         # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
         delete_scheduled_message = cron.new(command=f'python3 /botREMINDbot/reminder_remove.py {job_id}',
