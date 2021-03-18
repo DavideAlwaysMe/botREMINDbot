@@ -12,8 +12,9 @@ import sys
 
 # TODO: comando /removereminder
 # TODO: fuso orario
-# TODO: funzione generate_id()
-# TODO: comando /start
+# TODO: comando /privacy
+# TODO: cronjob per eliminare periodicamente i reminder scaduti oppure altro comando da aggiungere al crontab per
+#       eliminare la specifica query del database appena scaduta
 # TODO: comando /reminderslist
 # TODO: aggiungere codici identificativi dei reminder (anche per poterli eliminare)
 
@@ -77,7 +78,7 @@ def generate_id():
     while not found_id:
         found_id = True
         job_id += 1
-        #itera nei messaggi programmati, se l'id è già in uso esce e ricomincia il ciclo
+        # itera nei messaggi programmati, se l'id è già in uso esce e ricomincia il ciclo
         for messaggio in lista_messaggi:
             if messaggio['job_id'] == str(job_id):
                 found_id = False
@@ -135,7 +136,7 @@ def remindme(update, context):
         db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")})
-        print(str({'message_id': update.message.reply_to_message.message_id,
+        print(str({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
                    'data': data.strftime("%m/%d/% %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
@@ -168,7 +169,7 @@ def remindingroup(update, context):
         db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
                    'data': data.strftime("%m/%d/%Y\ %H:%M:%S")})
-        print(str({'message_id': update.message.reply_to_message.message_id,
+        print(str({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
@@ -177,6 +178,21 @@ def remindingroup(update, context):
     except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id, 'Reminder format was not correct use /help for more.')
+
+
+# itera in db.all(), salva in lista gli id e le date di tutti i reminder che hanno come 'chat_id' la chat_id di chi
+# ha eseguito il comando e infine invia lista
+def reminderslist(update, context):
+    lista_messaggi = db.all()
+    lista = ''
+    counter = 0
+
+    for messaggio in lista_messaggi:
+        if messaggio['chat_id'] == update.message.chat.id:
+            lista = lista + '- id: ' + messaggio['job_id'] + ', scheduled for: ' + messaggio['data'] + '\n'
+            counter += 1
+
+    context.bot.send_message(update.message.chat.id, f'You have {str(counter)} scheduled reminders:\n{lista}')
 
 
 def help(update, context):
@@ -197,8 +213,6 @@ You can write the remind expiry in a lot of different ways:
 - you can also try using a different syntax and see if the bot correctly understands you.'''
     context.bot.send_message(update.message.chat.id, help_text)
 
-    ...
-
 
 def main():
     upd = Updater(TOKEN, use_context=True)
@@ -207,6 +221,9 @@ def main():
     disp.add_handler(CommandHandler("remindme", remindme))
     disp.add_handler(CommandHandler("remindingroup", remindingroup))
     disp.add_handler(CommandHandler("help", help))
+    disp.add_handler(CommandHandler("start", help))
+    disp.add_handler(CommandHandler("reminderslist", reminderslist))
+
 
     upd.start_polling()
 
