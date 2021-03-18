@@ -4,7 +4,7 @@
 from tinydb import TinyDB, Query
 import sys
 
-
+print('entrato')
 job_id = str(sys.argv[1])
 db = TinyDB('/database/botREMINDbot_db.json')
 Messaggio = Query()
