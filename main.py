@@ -10,10 +10,12 @@ from dateutil.parser import parse
 from crontab import CronTab
 import sys
 
-#TODO:eliminare i reminder eventualmente
-#TODO: fuso orario
-#TODO: comando /start
-#TODO: aggiungere codici identificativi dei reminder (anche per poterli eliminare)
+# TODO: comando /removereminder
+# TODO: fuso orario
+# TODO: funzione generate_id()
+# TODO: comando /start
+# TODO: comando /reminderslist
+# TODO: aggiungere codici identificativi dei reminder (anche per poterli eliminare)
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
 TOKEN = str(sys.argv[1])
@@ -26,6 +28,7 @@ cron = CronTab(user=USER)
 # il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
 db = TinyDB('/database/botREMINDbot_db.json')
 
+
 # all'inizio dell'esecuzione ricontrolla il db e crea nuove
 
 # estrae argomento dividendo la stringa in un array di parole, e levando il primo elemento della stringa (il comando)
@@ -36,7 +39,7 @@ def estrai_argomento(text):
 
 
 # crea il comando partendo dai dati necessari per forwardMessage, da usare quando si crea il crontab
-def crea_comando(token,message_id, from_chat_id, chat_id):
+def crea_comando(token, message_id, from_chat_id, chat_id):
     return "curl -X POST -H 'Content-Type: application/json' -d '{\"chat_id\": \"" + str(
         chat_id) + "\",\"from_chat_id\": \"" + str(from_chat_id) + "\",\"message_id\": \"" + str(
         message_id) + "\"}' https://api.telegram.org/bot" + token + "/forwardMessage"
@@ -64,6 +67,12 @@ def is_int(s):
         return True
     except ValueError:
         return False
+
+
+# itera nel database e restituisce il primo numero intero libero
+def generate_id():
+    job_id = 0
+    return job_id
 
 
 # riceve come argomento una stringa, restituisce un oggetto datetime.datetime
@@ -101,15 +110,18 @@ def get_time(argument):
 def remindme(update, context):
     argument = estrai_argomento(update.message.text)
     try:
+        # genero l'id
+        job_id = str(generate_id())
         # aggiungere comando crontab
         data = get_time(argument)
         scheduled_message = cron.new(
-            command=crea_comando(TOKEN,update.message.reply_to_message.message_id, update.message.reply_to_message.chat.id,
-                                 update.message.from_user.id))
+            command=crea_comando(TOKEN, update.message.reply_to_message.message_id,
+                                 update.message.reply_to_message.chat.id,
+                                 update.message.from_user.id), comment=job_id)
         scheduled_message.setall(data)
         cron.write()
 
-        db.insert({'message_id': update.message.reply_to_message.message_id,
+        db.insert({'id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")})
         print(str({'message_id': update.message.reply_to_message.message_id,
@@ -117,7 +129,8 @@ def remindme(update, context):
                    'data': data.strftime("%m/%d/% %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
-        context.bot.send_message(update.message.from_user.id, f'Reminder has been saved successfully for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
+        context.bot.send_message(update.message.from_user.id,
+                                 f'Reminder has been saved successfully for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
@@ -130,29 +143,33 @@ def remindme(update, context):
 def remindingroup(update, context):
     argument = estrai_argomento(update.message.text)
     try:
+        # genero l'id
+        job_id = str(generate_id())
         # aggiungere comando crontab
         data = get_time(argument)
         scheduled_message = cron.new(command=
-            crea_comando(TOKEN,update.message.reply_to_message.message_id, update.message.reply_to_message.chat.id,
-                         update.message.chat.id))
+                                     crea_comando(TOKEN, update.message.reply_to_message.message_id,
+                                                  update.message.reply_to_message.chat.id,
+                                                  update.message.chat.id), comment=job_id)
         scheduled_message.setall(data)
         cron.write()
 
-        db.insert({'message_id': update.message.reply_to_message.message_id,
+        db.insert({'id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
                    'data': data.strftime("%m/%d/%Y\ %H:%M:%S")})
         print(str({'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
-        context.bot.send_message(update.message.chat.id, f'Reminder has been saved successfully for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
+        context.bot.send_message(update.message.chat.id,
+                                 f'Reminder has been saved successfully for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id, 'Reminder format was not correct use /help for more.')
 
 
 def help(update, context):
-    help_text='''Hi, this bot helps you setting up reminders.
+    help_text = '''Hi, this bot helps you setting up reminders.
 To use it correctly you should add it in your group.
 
 Available commands
@@ -167,7 +184,7 @@ You can write the remind expiry in a lot of different ways:
 - with bot a date and a time e.g. 03/17/2021 22:38:53
 - as a duration e.g 1 min or 1 h or 1 d to set a reminder for 1 minute from now, or for 1 hour from now, or tomorrow
 - you can also try using a different syntax and see if the bot correctly understands you.'''
-    context.bot.send_message(update.message.chat.id,help_text)
+    context.bot.send_message(update.message.chat.id, help_text)
 
     ...
 
