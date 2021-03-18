@@ -134,7 +134,7 @@ def remindme(update, context):
         scheduled_message.setall(data)
 
         # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
-        delete_scheduled_message = cron.new(command='python3 /botREMINDbot/reminder_remove_py ' + job_id,
+        delete_scheduled_message = cron.new(command='python3 /botREMINDbot/reminder_remove.py ' + job_id,
                                             comment='delete ' + job_id)
         delete_scheduled_message.setall(data + timedelta(minutes=1))
         cron.write()
@@ -172,7 +172,7 @@ def remindingroup(update, context):
         scheduled_message.setall(data)
 
         # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
-        delete_scheduled_message = cron.new(command=f'python3 /botREMINDbot/reminder_remove_py {job_id}',
+        delete_scheduled_message = cron.new(command=f'python3 /botREMINDbot/reminder_remove.py {job_id}',
                                             comment='delete ' + job_id)
         delete_scheduled_message.setall(data + timedelta(minutes=1))
         cron.write()
