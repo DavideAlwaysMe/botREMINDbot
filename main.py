@@ -74,12 +74,12 @@ def generate_id():
     lista_messaggi = db.all()
     job_id = 0
     found_id = False
-    while found_id:
+    while not found_id:
         found_id = True
         job_id += 1
         #itera nei messaggi programmati, se l'id è già in uso esce e ricomincia il ciclo
         for messaggio in lista_messaggi:
-            if messaggio['job_id'] == job_id:
+            if messaggio['job_id'] == str(job_id):
                 found_id = False
                 break
 
