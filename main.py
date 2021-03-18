@@ -10,12 +10,12 @@ from dateutil.parser import parse
 from crontab import CronTab
 import sys
 
-# TODO: comando /removereminder
+# TODO: comando /removereminder (deve eliminare reminder da crontab, delete reminder da crontab
+#       e il messaggio dal database)
 # TODO: fuso orario
 # TODO: comando /privacy
 # TODO: cronjob per eliminare periodicamente i reminder scaduti oppure altro comando da aggiungere al crontab per
-#       eliminare la specifica query del database appena scaduta
-# TODO: comando /reminderslist
+#       eliminare la specifica query del database appena scaduta: fatta ma da provare
 # TODO: aggiungere codici identificativi dei reminder (anche per poterli eliminare)
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
@@ -124,6 +124,7 @@ def remindme(update, context):
     try:
         # genero l'id
         job_id = str(generate_id())
+
         # aggiungere comando crontab
         data = get_time(argument)
         scheduled_message = cron.new(
@@ -131,6 +132,11 @@ def remindme(update, context):
                                  update.message.reply_to_message.chat.id,
                                  update.message.from_user.id), comment=job_id)
         scheduled_message.setall(data)
+
+        # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
+        delete_scheduled_message = cron.new(command='python3 /botREMINDbot/reminder_remove_py ' + job_id,
+                                            comment='delete ' + job_id)
+        delete_scheduled_message.setall(data + timedelta(minutes=1))
         cron.write()
 
         db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
@@ -142,7 +148,7 @@ def remindme(update, context):
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id,
-                                 f'Reminder has been saved successfully for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
+                                 f'Reminder has been successfully scheduled for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
@@ -164,6 +170,11 @@ def remindingroup(update, context):
                                                   update.message.reply_to_message.chat.id,
                                                   update.message.chat.id), comment=job_id)
         scheduled_message.setall(data)
+
+        # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
+        delete_scheduled_message = cron.new(command='python3 /botREMINDbot/reminder_remove_py ' + job_id,
+                                            comment='delete ' + job_id)
+        delete_scheduled_message.setall(data + timedelta(minutes=1))
         cron.write()
 
         db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
@@ -174,7 +185,7 @@ def remindingroup(update, context):
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.chat.id,
-                                 f'Reminder has been saved successfully for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
+                                 f'Reminder has been successfully scheduled for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id, 'Reminder format was not correct use /help for more.')
@@ -192,7 +203,10 @@ def reminderslist(update, context):
             lista = lista + '- id: ' + messaggio['job_id'] + ', scheduled for: ' + messaggio['data'] + '\n'
             counter += 1
 
-    context.bot.send_message(update.message.chat.id, f'You have {str(counter)} scheduled reminders:\n{lista}')
+    if counter == 0:
+        context.bot.send_message(update.message.chat.id, f'You don\'t have any scheduled reminders.')
+    else:
+        context.bot.send_message(update.message.chat.id, f'You have {str(counter)} scheduled reminders:\n{lista}')
 
 
 def help(update, context):
@@ -223,7 +237,6 @@ def main():
     disp.add_handler(CommandHandler("help", help))
     disp.add_handler(CommandHandler("start", help))
     disp.add_handler(CommandHandler("reminderslist", reminderslist))
-
 
     upd.start_polling()
 
