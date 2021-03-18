@@ -71,7 +71,18 @@ def is_int(s):
 
 # itera nel database e restituisce il primo numero intero libero
 def generate_id():
+    lista_messaggi = db.all()
     job_id = 0
+    found_id = False
+    while not found_id:
+        found_id = True
+        job_id += 1
+        #itera nei messaggi programmati, se l'id è già in uso esce e ricomincia il ciclo
+        for messaggio in lista_messaggi:
+            if messaggio['job_id'] == job_id:
+                found_id = False
+                break
+
     return job_id
 
 
@@ -121,7 +132,7 @@ def remindme(update, context):
         scheduled_message.setall(data)
         cron.write()
 
-        db.insert({'id': job_id, 'message_id': update.message.reply_to_message.message_id,
+        db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")})
         print(str({'message_id': update.message.reply_to_message.message_id,
@@ -154,7 +165,7 @@ def remindingroup(update, context):
         scheduled_message.setall(data)
         cron.write()
 
-        db.insert({'id': job_id, 'message_id': update.message.reply_to_message.message_id,
+        db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
                    'data': data.strftime("%m/%d/%Y\ %H:%M:%S")})
         print(str({'message_id': update.message.reply_to_message.message_id,
