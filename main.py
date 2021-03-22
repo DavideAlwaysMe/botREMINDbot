@@ -24,8 +24,7 @@ TOKEN = str(sys.argv[1])
 USER = sys.argv[2]
 
 # il bot programma l'invio dei messaggi con crontab
-cron1 = CronTab(user=USER)
-cron2 = CronTab(user=USER)
+cron = CronTab(user=USER)
 
 
 # il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
@@ -129,18 +128,18 @@ def remindme(update, context):
 
         # aggiungere comando crontab
         data = get_time(argument)
-        scheduled_message = cron1.new(
+        scheduled_message = cron.new(
             command=crea_comando(TOKEN, update.message.reply_to_message.message_id,
                                  update.message.reply_to_message.chat.id,
                                  update.message.from_user.id), comment=job_id)
         scheduled_message.setall(data)
-        cron1.write()
+        cron.write()
 
         # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
-        delete_scheduled_message = cron2.new(command='python3 /botREMINDbot/reminder_remove.py ' + job_id,
+        delete_scheduled_message = cron.new(command='python3 /botREMINDbot/reminder_remove.py ' + job_id,
                                             comment='delete ' + job_id)
         delete_scheduled_message.setall(data + timedelta(minutes=1))
-        cron2.write()
+        cron.write()
 
         db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
