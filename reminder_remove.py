@@ -10,7 +10,9 @@ def remove(job_id):
     Messaggio = Query()
     db.remove(Messaggio['job_id'] == job_id)
 
-
-if __name__ == '__main__':
+def main():
     job_id = str(sys.argv[1])
     remove(job_id)
+
+if __name__ == '__main__':
+    main()
