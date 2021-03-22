@@ -9,14 +9,12 @@ from datetime import timedelta, datetime
 from dateutil.parser import parse
 from crontab import CronTab
 import sys
+from reminder_remove import remove
 
 # TODO: comando /removereminder (deve eliminare reminder da crontab, delete reminder da crontab
 #       e il messaggio dal database)
 # TODO: fuso orario
 # TODO: comando /privacy
-# TODO: cronjob per eliminare periodicamente i reminder scaduti oppure altro comando da aggiungere al crontab per
-#       eliminare la specifica query del database appena scaduta: fatta ma da provare
-# TODO: aggiungere codici identificativi dei reminder (anche per poterli eliminare)
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
 TOKEN = str(sys.argv[1])
@@ -25,7 +23,6 @@ USER = sys.argv[2]
 
 # il bot programma l'invio dei messaggi con crontab
 cron = CronTab(user=USER)
-
 
 # il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
 db = TinyDB('/database/botREMINDbot_db.json')
@@ -137,7 +134,7 @@ def remindme(update, context):
 
         # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
         delete_scheduled_message = cron.new(command='/usr/local/bin/python3 /botREMINDbot/reminder_remove.py ' + job_id,
-                                            comment='delete ' + job_id)
+                                            comment=job_id)
         delete_scheduled_message.setall(data + timedelta(minutes=1))
         cron.write()
 
@@ -176,7 +173,7 @@ def remindingroup(update, context):
 
         # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
         delete_scheduled_message = cron.new(command=f'/usr/local/bin/python3 /botREMINDbot/reminder_remove.py {job_id}',
-                                            comment='delete ' + job_id)
+                                            comment=job_id)
         print((data + timedelta(minutes=1)).strftime("%m/%d/%Y %H:%M:%S"))
         delete_scheduled_message.setall(data + timedelta(minutes=1))
         cron.write()
@@ -213,6 +210,18 @@ def reminderslist(update, context):
         context.bot.send_message(update.message.chat.id, f'You have {str(counter)} scheduled reminders:\n{lista}')
 
 
+def removereminder(update, context):
+    # estraggo l'id del reminder da eliminare
+    job_id = estrai_argomento(update.message.text)[0]
+
+    # elimino dal database il messaggio programmato che ha quell'id
+    remove(job_id)
+
+    # elimino i cron jobs che hanno come commento l'id del messaggio
+    cron.remove_all(comment=job_id)
+    cron.write()
+
+
 def help(update, context):
     help_text = '''Hi, this bot helps you setting up reminders.
 To use it correctly you should add it in your group.
@@ -241,6 +250,8 @@ def main():
     disp.add_handler(CommandHandler("help", help))
     disp.add_handler(CommandHandler("start", help))
     disp.add_handler(CommandHandler("reminderslist", reminderslist))
+    disp.add_handler(CommandHandler("removereminder", removereminder))
+
 
     upd.start_polling()
 

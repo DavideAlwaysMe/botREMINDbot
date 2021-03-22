@@ -4,8 +4,13 @@
 from tinydb import TinyDB, Query
 import sys
 
-print('entrato')
-job_id = str(sys.argv[1])
-db = TinyDB('/database/botREMINDbot_db.json')
-Messaggio = Query()
-db.remove(Messaggio['job_id'] == job_id)
+#uso una funzione perchè lo userò anche per il comando /removereminder
+def remove(job_id):
+    db = TinyDB('/database/botREMINDbot_db.json')
+    Messaggio = Query()
+    db.remove(Messaggio['job_id'] == job_id)
+
+
+if __name__ == '__main__':
+    job_id = str(sys.argv[1])
+    remove(job_id)
