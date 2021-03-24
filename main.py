@@ -163,7 +163,7 @@ def remindme(update, context):
         job_id = str(generate_id())
 
         #ottengo da get_time una data secondo il fuso orario dell'utente
-        data_withtz=get_time(argument)
+        data_withtz=get_time(argument,update.message.from_user.id)
         # il container ha come fuso orario UTC quindi converto la data
         data = data_withtz.astimezone(pytz.utc)
 
@@ -191,7 +191,7 @@ def remindme(update, context):
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id,
                                  f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M:%S")}.')
-    except ValueError:
+    except TypeError:
         print('Format not valid')
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id, 'Reminder format was not correct use /help for more.')
