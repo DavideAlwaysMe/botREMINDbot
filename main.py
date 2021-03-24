@@ -191,7 +191,7 @@ def remindme(update, context):
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id,
                                  f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M:%S")}.')
-    except TypeError:
+    except ValueError:
         print('Format not valid')
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id, 'Reminder format was not correct use /help for more.')
