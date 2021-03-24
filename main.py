@@ -116,23 +116,34 @@ def has_timezone(chat_id):
 # riceve come argomento una stringa, restituisce un oggetto datetime.datetime
 # traduce in datetime.datetime espressioni come 3 min, 3 h, 3 d, 01/01/01, 17:10 oppure 01/01/01 10:15
 # get_time deve essere usato direttamente nella creazione dei contab job e non nel salvataggio sul db
-def get_time(argument):
+def get_time(argument,chat_id):
+    # scelgo il fuso orario dell'utente
+    chosen_timezone = pytz.timezone(get_timezone(chat_id))
+    utc=pytz.timezone('UTC')
     if len(argument) > 1:
         # se l'array argument contiene più di un argomento allora può essere sia timedelta che una data con sia giorno che ora oppure da errore
         if argument[1] == 'min' and is_int(argument[0]):
-            data = datetime.now() + timedelta(minutes=int(argument[0]))
+            data_notz = datetime.now() + timedelta(minutes=int(argument[0]))
+            data_utc = utc.localize(data_notz)
+            data = data_utc.astimezone(chosen_timezone)
         elif argument[1] == 'h' and is_int(argument[0]):
-            data = datetime.now() + timedelta(hours=int(argument[0]))
+            data_notz = datetime.now() + timedelta(hours=int(argument[0]))
+            data_utc = utc.localize(data_notz)
+            data = data_utc.astimezone(chosen_timezone)
         elif argument[1] == 'd' and is_int(argument[0]):
-            data = datetime.now() + timedelta(days=int(argument[0]))
+            data_notz = datetime.now() + timedelta(days=int(argument[0]))
+            data_utc = utc.localize(data_notz)
+            data = data_utc.astimezone(chosen_timezone)
         elif is_date(f'{argument[0]} {argument[1]}'):
-            data = parse(f'{argument[0]} {argument[1]}')
+            data_notz = parse(f'{argument[0]} {argument[1]}')
+            data = chosen_timezone.localize(data_notz)
         else:
             raise TypeError('Command argument was not written in a valid format')
     elif len(argument) == 1:
         # se l'array argument contiene un solo elemento deve essere per forza una data altrimenti da errore
         if is_date(argument[0]):
-            data = parse(argument[0])
+            data_notz = parse(argument[0])
+            data = chosen_timezone.localize(data_notz)
         else:
             raise TypeError('Command argument was not written in a valid format')
     else:
@@ -151,10 +162,8 @@ def remindme(update, context):
         # genero l'id
         job_id = str(generate_id())
 
-        # aggiungo alla data inserita anche il fuso orario dell'utente
-        data_notz = get_time(argument)
-        chosen_timezone = pytz.timezone(get_timezone(update.message.from_user.id))
-        data_withtz = chosen_timezone.localize(data_notz)
+        #ottengo da get_time una data secondo il fuso orario dell'utente
+        data_withtz=get_time(argument)
         # il container ha come fuso orario UTC quindi converto la data
         data = data_withtz.astimezone(pytz.utc)
 
