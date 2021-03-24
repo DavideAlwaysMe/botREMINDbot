@@ -3,3 +3,6 @@ tinyDB
 python-dateutil
 datetime
 python-crontab
+timezonefinder
+geopy
+pytz

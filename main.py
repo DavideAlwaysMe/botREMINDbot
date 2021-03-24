@@ -2,19 +2,24 @@
 # https://python-telegram-bot.readthedocs.io/en/stable/index.html
 # https://pypi.org/project/tinydb/
 # https://pypi.org/project/python-crontab/
-
+import pytz
 from telegram.ext import Updater, CommandHandler
-from tinydb import TinyDB
-from datetime import timedelta, datetime
+from tinydb import TinyDB, Query
+from datetime import timedelta, datetime, timezone
 from dateutil.parser import parse
 from crontab import CronTab
 import sys
 from reminder_remove import remove
+from timezonefinder import TimezoneFinder
+from geopy.geocoders import Nominatim
 
 # TODO: comando /removereminder (deve eliminare reminder da crontab, delete reminder da crontab
 #       e il messaggio dal database)
 # TODO: fuso orario
 # TODO: comando /privacy
+# TODO: funzione get_timezone per cercare il fuso orario nel database timezone_db
+# TODO: usare questo nell'impostare il promemoria: timezone_utc=pytz.timezone(timezone_name)        fatto ma non provato
+# TODO: aggiungere al comando /help sia /removereminder che info su /timezone
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
 TOKEN = str(sys.argv[1])
@@ -26,6 +31,7 @@ cron = CronTab(user=USER)
 
 # il bot deve essere eseguito con docker, sarà contenuto nella cartella /botREMINDbot e il suo database in /database
 db = TinyDB('/database/botREMINDbot_db.json')
+timezone_db = TinyDB('/database/timezone_db.json')
 
 
 # all'inizio dell'esecuzione ricontrolla il db e crea nuove
@@ -85,6 +91,28 @@ def generate_id():
     return job_id
 
 
+# funzione che riceve come parametro l'id della chat e controlla nel database timezone se ci sono info sul quella chat,
+# restituisce il nome come stringa di un fuso orario se presenti info, altrimenti UTC
+def get_timezone(chat_id):
+    timezone_list = timezone_db.all()
+    # itera tra gli elementi del database e controlla se esiste già una preferenza per quella chat
+    for chat_tz in timezone_list:
+        if chat_tz['chat_id'] == chat_id:
+            return chat_tz['timezone']
+    # se non ha trovato nessuna preferenza restituisce utc
+    return 'UTC'
+
+
+def has_timezone(chat_id):
+    timezone_list = timezone_db.all()
+    # itera tra gli elementi del database e controlla se esiste già una preferenza per quella chat
+    for chat_tz in timezone_list:
+        if chat_tz['chat_id'] == chat_id:
+            return True
+    # se non ha trovato nessuna preferenza restituisce falso
+    return False
+
+
 # riceve come argomento una stringa, restituisce un oggetto datetime.datetime
 # traduce in datetime.datetime espressioni come 3 min, 3 h, 3 d, 01/01/01, 17:10 oppure 01/01/01 10:15
 # get_time deve essere usato direttamente nella creazione dei contab job e non nel salvataggio sul db
@@ -123,8 +151,14 @@ def remindme(update, context):
         # genero l'id
         job_id = str(generate_id())
 
+        # aggiungo alla data inserita anche il fuso orario dell'utente
+        data_notz = get_time(argument)
+        chosen_timezone = pytz.timezone(get_timezone(update.message.from_user.id))
+        data_withtz = chosen_timezone.localize(data_notz)
+        # il container ha come fuso orario UTC quindi converto la data
+        data = data_withtz.astimezone(pytz.utc)
+
         # aggiungere comando crontab
-        data = get_time(argument)
         scheduled_message = cron.new(
             command=crea_comando(TOKEN, update.message.reply_to_message.message_id,
                                  update.message.reply_to_message.chat.id,
@@ -147,7 +181,7 @@ def remindme(update, context):
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id,
-                                 f'Reminder has been successfully scheduled for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
+                                 f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
@@ -162,8 +196,15 @@ def remindingroup(update, context):
     try:
         # genero l'id
         job_id = str(generate_id())
+
+        # aggiungo alla data inserita anche il fuso orario dell'utente
+        data_notz = get_time(argument)
+        chosen_timezone = pytz.timezone(get_timezone(update.message.chat.id))
+        data_withtz = chosen_timezone.localize(data_notz)
+        # il container ha come fuso orario UTC quindi converto la data
+        data = data_withtz.astimezone(pytz.utc)
+
         # aggiungere comando crontab
-        data = get_time(argument)
         scheduled_message = cron.new(command=
                                      crea_comando(TOKEN, update.message.reply_to_message.message_id,
                                                   update.message.reply_to_message.chat.id,
@@ -186,7 +227,7 @@ def remindingroup(update, context):
                    'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.chat.id,
-                                 f'Reminder has been successfully scheduled for {data.strftime("%m/%d/%Y %H:%M:%S")}.')
+                                 f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M:%S")}.')
     except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id, 'Reminder format was not correct use /help for more.')
@@ -222,6 +263,38 @@ def removereminder(update, context):
     cron.write()
 
 
+def timezone(update, context):
+    location_name = str(estrai_argomento(update.message.text))
+
+    try:
+        # initialize Nominatim API
+        geolocator = Nominatim(user_agent="botremindbot_timezonefinder")
+
+        # getting Latitude and Longitude
+        location = geolocator.geocode(location_name)
+
+        # pass the Latitude and Longitude
+        # into a timezone_at
+        # and it return timezone
+        timezoneobj = TimezoneFinder()
+
+        # returns the timezone (stringa)
+        timezone_name = timezoneobj.timezone_at(lng=location.longitude, lat=location.latitude)
+
+        # controllo che non ci sia già una preferenza di timezone
+        if has_timezone(update.message.chat.id):
+            Chat_tz = Query()
+            # aggiorno preferenza database
+            timezone_db.update({'timezone': timezone_name}, Chat_tz.chat_id == update.message.chat.id)
+        else:
+            # inserisco id chat e preferenza del fuso orario nel database
+            timezone_db.insert({'chat_id': update.message.chat.id, 'timezone': timezone_name})
+
+    except ValueError:
+        print('Timezone format not valid:' + location_name)
+        context.bot.send_message(update.message.chat.id, 'Timezone format was not correct use /help for more.')
+
+
 def help(update, context):
     help_text = '''Hi, this bot helps you setting up reminders.
 To use it correctly you should add it in your group.
@@ -251,7 +324,7 @@ def main():
     disp.add_handler(CommandHandler("start", help))
     disp.add_handler(CommandHandler("reminderslist", reminderslist))
     disp.add_handler(CommandHandler("removereminder", removereminder))
-
+    disp.add_handler(CommandHandler("timezone", timezone))
 
     upd.start_polling()
 
