@@ -265,37 +265,39 @@ def removereminder(update, context):
 
 
 def timezone(update, context):
-    location_name = str(estrai_argomento(update.message.text))
+    if len(estrai_argomento(update.message.text))>0:
+        location_name = str(estrai_argomento(update.message.text))
+        try:
+            # initialize Nominatim API
+            geolocator = Nominatim(user_agent="botremindbot_timezonefinder")
 
-    try:
-        # initialize Nominatim API
-        geolocator = Nominatim(user_agent="botremindbot_timezonefinder")
+            # getting Latitude and Longitude
+            location = geolocator.geocode(location_name)
 
-        # getting Latitude and Longitude
-        location = geolocator.geocode(location_name)
+            # pass the Latitude and Longitude
+            # into a timezone_at
+            # and it return timezone
+            timezoneobj = TimezoneFinder()
 
-        # pass the Latitude and Longitude
-        # into a timezone_at
-        # and it return timezone
-        timezoneobj = TimezoneFinder()
+            # returns the timezone (stringa)
+            timezone_name = timezoneobj.timezone_at(lng=location.longitude, lat=location.latitude)
 
-        # returns the timezone (stringa)
-        timezone_name = timezoneobj.timezone_at(lng=location.longitude, lat=location.latitude)
+            # controllo che non ci sia già una preferenza di timezone
+            if has_timezone(update.message.chat.id):
+                Chat_tz = Query()
+                # aggiorno preferenza database
+                timezone_db.update({'timezone': timezone_name}, Chat_tz.chat_id == update.message.chat.id)
+                context.bot.send_message(update.message.chat.id, f'Your timezone is now: {timezone_name}')
+            else:
+                # inserisco id chat e preferenza del fuso orario nel database
+                timezone_db.insert({'chat_id': update.message.chat.id, 'timezone': timezone_name})
+                context.bot.send_message(update.message.chat.id, f'Your timezone is now: {timezone_name}')
 
-        # controllo che non ci sia già una preferenza di timezone
-        if has_timezone(update.message.chat.id):
-            Chat_tz = Query()
-            # aggiorno preferenza database
-            timezone_db.update({'timezone': timezone_name}, Chat_tz.chat_id == update.message.chat.id)
-            context.bot.send_message(update.message.chat.id, f'Your timezone is now:{timezone_name}')
-        else:
-            # inserisco id chat e preferenza del fuso orario nel database
-            timezone_db.insert({'chat_id': update.message.chat.id, 'timezone': timezone_name})
-            context.bot.send_message(update.message.chat.id, f'Your timezone is now:{timezone_name}')
-
-    except ValueError:
-        print('Timezone format not valid:' + location_name)
-        context.bot.send_message(update.message.chat.id, 'Timezone format was not correct use /help for more.')
+        except ValueError:
+            print('Timezone format not valid:' + location_name)
+            context.bot.send_message(update.message.chat.id, 'Timezone format was not correct, use /help for more.')
+    else:
+        context.bot.send_message(update.message.chat.id, 'You have to pass your location as argument to set your timezone, use /help for more.')
 
 
 def help(update, context):
