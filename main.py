@@ -302,7 +302,7 @@ def help(update, context):
     help_text = '''Hi, this bot helps you setting up reminders\.
 To use it correctly you should add it in your group\.
 
-*bold \*Available commands*
+*Available commands*
 \- /remindme *date* \- Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam\.
 \- /remindingroup *date* \- Use it replying to a message and the bot will forward it to the group at the desired date or time\.
 \- /reminderslist \- Returns the list of your scheduled reminder and their ids\.
@@ -310,7 +310,7 @@ To use it correctly you should add it in your group\.
 \- /timezone *location* \- Use it to set your timezone, otherwise the reminder date expiry timezone is considered as UTC, you should pass the name of a city as argument and the bot will find your timezone\.
 \- /privacy \- Info about how this bot handle your data\.
 
-*bold \*About command arguments*
+*About command arguments*
 You can write the remind expiry in a lot of different ways:
 \- as a date e\.g\. 03/01/2021 to set a reminder for the 1 of March
 \- as a time e\.g\. 5:00 pm to set a reminder for today at 5 pm
