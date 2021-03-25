@@ -303,11 +303,11 @@ def help(update, context):
 To use it correctly you should add it in your group\.
 
 *Available commands*
-\- /remindme *date* \- Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam\.
-\- /remindingroup *date* \- Use it replying to a message and the bot will forward it to the group at the desired date or time\.
+\- /remindme _date_ \- Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam\.
+\- /remindingroup _date_ \- Use it replying to a message and the bot will forward it to the group at the desired date or time\.
 \- /reminderslist \- Returns the list of your scheduled reminder and their ids\.
-\- /removereminder *id* \- Use it to unschedule a reminder\.
-\- /timezone *location* \- Use it to set your timezone, otherwise the reminder date expiry timezone is considered as UTC, you should pass the name of a city as argument and the bot will find your timezone\.
+\- /removereminder _id_ \- Use it to unschedule a reminder\.
+\- /timezone _location_ \- Use it to set your timezone, otherwise the reminder date expiry timezone is considered as UTC, you should pass the name of a city as argument and the bot will find your timezone\.
 \- /privacy \- Info about how this bot handle your data\.
 
 *About command arguments*
