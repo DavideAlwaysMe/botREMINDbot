@@ -13,13 +13,7 @@ from reminder_remove import remove
 from timezonefinder import TimezoneFinder
 from geopy.geocoders import Nominatim
 
-# TODO: comando /removereminder (deve eliminare reminder da crontab, delete reminder da crontab
-#       e il messaggio dal database)
-# TODO: fuso orario
 # TODO: comando /privacy
-# TODO: funzione get_timezone per cercare il fuso orario nel database timezone_db
-# TODO: usare questo nell'impostare il promemoria: timezone_utc=pytz.timezone(timezone_name)        fatto ma non provato
-# TODO: aggiungere al comando /help sia /removereminder che info su /timezone
 
 # token fornito dal BotFather passato come argomento del comando di esecuzione del bot
 TOKEN = str(sys.argv[1])
@@ -183,14 +177,14 @@ def remindme(update, context):
 
         db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
-                   'data': data.strftime("%m/%d/%Y %H:%M:%S")})
+                   'data': data.strftime("%m/%d/%Y %H:%M")})
         print(str({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.from_user.id,
-                   'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
+                   'data': data.strftime("%m/%d/%Y %H:%M")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id,
-                                 f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M:%S")}.')
+                                 f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M")}.')
     except TypeError:
         print('Format not valid')
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
@@ -206,10 +200,8 @@ def remindingroup(update, context):
         # genero l'id
         job_id = str(generate_id())
 
-        # aggiungo alla data inserita anche il fuso orario dell'utente
-        data_notz = get_time(argument)
-        chosen_timezone = pytz.timezone(get_timezone(update.message.chat.id))
-        data_withtz = chosen_timezone.localize(data_notz)
+        #ottengo da get_time una data secondo il fuso orario dell'utente
+        data_withtz=get_time(argument,update.message.chat.id)
         # il container ha come fuso orario UTC quindi converto la data
         data = data_withtz.astimezone(pytz.utc)
 
@@ -224,19 +216,19 @@ def remindingroup(update, context):
         # altro comando crontab per eliminare la query scaduta dal database, necessario per avere una reminderslist aggiornata
         delete_scheduled_message = cron.new(command=f'/usr/local/bin/python3 /botREMINDbot/reminder_remove.py {job_id}',
                                             comment=job_id)
-        print((data + timedelta(minutes=1)).strftime("%m/%d/%Y %H:%M:%S"))
+        print((data + timedelta(minutes=1)).strftime("%m/%d/%Y %H:%M"))
         delete_scheduled_message.setall(data + timedelta(minutes=1))
         cron.write()
 
         db.insert({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
-                   'data': data.strftime("%m/%d/%Y %H:%M:%S")})
+                   'data': data.strftime("%m/%d/%Y %H:%M")})
         print(str({'job_id': job_id, 'message_id': update.message.reply_to_message.message_id,
                    'from_chat_id': update.message.reply_to_message.chat.id, 'chat_id': update.message.chat.id,
-                   'data': data.strftime("%m/%d/%Y %H:%M:%S")}))
+                   'data': data.strftime("%m/%d/%Y %H:%M")}))
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.chat.id,
-                                 f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M:%S")}.')
+                                 f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M")}.')
     except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id, 'Reminder format was not correct use /help for more.')
@@ -295,9 +287,11 @@ def timezone(update, context):
             Chat_tz = Query()
             # aggiorno preferenza database
             timezone_db.update({'timezone': timezone_name}, Chat_tz.chat_id == update.message.chat.id)
+            context.bot.send_message(update.message.chat.id, f'Your timezone is now:{timezone_name}')
         else:
             # inserisco id chat e preferenza del fuso orario nel database
             timezone_db.insert({'chat_id': update.message.chat.id, 'timezone': timezone_name})
+            context.bot.send_message(update.message.chat.id, f'Your timezone is now:{timezone_name}')
 
     except ValueError:
         print('Timezone format not valid:' + location_name)
@@ -308,19 +302,22 @@ def help(update, context):
     help_text = '''Hi, this bot helps you setting up reminders.
 To use it correctly you should add it in your group.
 
-Available commands
-There are two available commands:
+*bold \*Available commands*
 - /remindme *date* - Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam.
 - /remindingroup *date* - Use it replying to a message and the bot will forward it to the group at the desired date or time.
+- /reminderslist - Returns the list of your scheduled reminder and their ids.
+- /removereminder *id* - Use it to unschedule a reminder.
+- /timezone *location* - Use it to set your timezone, otherwise the reminder date expiry timezone is considered as UTC, you should pass the name of a city as argument and the bot will find your timezone.
+- /privacy - Info about how this bot handle your data.
 
-About command arguments
+*bold \*About command arguments*
 You can write the remind expiry in a lot of different ways:
 - as a date e.g 03/01/2021 to set a reminder for the 1 of March
 - as a time e.g. 5:00 pm to set a reminder for today at 5 pm
 - with bot a date and a time e.g. 03/17/2021 22:38:53
-- as a duration e.g 1 min or 1 h or 1 d to set a reminder for 1 minute from now, or for 1 hour from now, or tomorrow
+- as a duration e.g 10 min or 1 h or 2 d to set a reminder for 10 minutes from now, or for 1 hour from now, or the day after tomorrow
 - you can also try using a different syntax and see if the bot correctly understands you.'''
-    context.bot.send_message(update.message.chat.id, help_text)
+    context.bot.send_message(update.message.chat.id, help_text, parse_mode='MarkdownV2')
 
 
 def main():
