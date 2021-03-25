@@ -299,6 +299,12 @@ def timezone(update, context):
     else:
         context.bot.send_message(update.message.chat.id, 'You have to pass your location as argument to set your timezone, use /help for more.')
 
+def privacy(update, context):
+    privacy_disclaimer='''When you schedule a reminder this bot stores in a database your id and the id of the message that will be forwarded to you at the reminder expiry, reminder data will be deleted when the message is forwarded\.
+Neither your name nor the content of the message will be saved in our server\.
+When you set your timezone we don't save your location but just your timezone name and your id\.
+This bot is open source so you can inspect the bot code [here](https://github.com/DavideAlwaysMe/botREMINDbot)\.'''
+    context.bot.send_message(update.message.chat.id, privacy_disclaimer, parse_mode='MarkdownV2')
 
 def help(update, context):
     help_text = '''Hi, this bot helps you setting up reminders\.
@@ -316,8 +322,8 @@ To use it correctly you should add it in your group\.
 You can write the remind expiry in a lot of different ways:
 \- as a date e\.g\. 03/01/2021 to set a reminder for the 1 of March
 \- as a time e\.g\. 5:00 pm to set a reminder for today at 5 pm
-\- with bot a date and a time e\.g\. 03/17/2021 22:38:53
-\- as a duration e\.g\. 10 min or 1 h or 2 d to set a reminder for 10 minutes from now, or for 1 hour from now, or the day after tomorrow
+\- with both a date and a time e\.g\. 03/17/2021 22:38:53
+\- as a duration e\.g\. 10 min or 1 h or 2 d to set a reminder for 10 minutes from now, or for 1 hour from now, or for the day after tomorrow
 \- you can also try using a different syntax and see if the bot correctly understands you\.'''
     context.bot.send_message(update.message.chat.id, help_text, parse_mode='MarkdownV2')
 
@@ -333,6 +339,7 @@ def main():
     disp.add_handler(CommandHandler("reminderslist", reminderslist))
     disp.add_handler(CommandHandler("removereminder", removereminder))
     disp.add_handler(CommandHandler("timezone", timezone))
+    disp.add_handler(CommandHandler("privacy", privacy))
 
     upd.start_polling()
 
