@@ -110,10 +110,10 @@ def has_timezone(chat_id):
 # riceve come argomento una stringa, restituisce un oggetto datetime.datetime
 # traduce in datetime.datetime espressioni come 3 min, 3 h, 3 d, 01/01/01, 17:10 oppure 01/01/01 10:15
 # get_time deve essere usato direttamente nella creazione dei contab job e non nel salvataggio sul db
-def get_time(argument,chat_id):
+def get_time(argument, chat_id):
     # scelgo il fuso orario dell'utente
     chosen_timezone = pytz.timezone(get_timezone(chat_id))
-    utc=pytz.timezone('UTC')
+    utc = pytz.timezone('UTC')
     if len(argument) > 1:
         # se l'array argument contiene più di un argomento allora può essere sia timedelta che una data con sia giorno che ora oppure da errore
         if argument[1] == 'min' and is_int(argument[0]):
@@ -156,8 +156,8 @@ def remindme(update, context):
         # genero l'id
         job_id = str(generate_id())
 
-        #ottengo da get_time una data secondo il fuso orario dell'utente
-        data_withtz=get_time(argument,update.message.from_user.id)
+        # ottengo da get_time una data secondo il fuso orario dell'utente
+        data_withtz = get_time(argument, update.message.from_user.id)
         # il container ha come fuso orario UTC quindi converto la data
         data = data_withtz.astimezone(pytz.utc)
 
@@ -200,8 +200,8 @@ def remindingroup(update, context):
         # genero l'id
         job_id = str(generate_id())
 
-        #ottengo da get_time una data secondo il fuso orario dell'utente
-        data_withtz=get_time(argument,update.message.chat.id)
+        # ottengo da get_time una data secondo il fuso orario dell'utente
+        data_withtz = get_time(argument, update.message.chat.id)
         # il container ha come fuso orario UTC quindi converto la data
         data = data_withtz.astimezone(pytz.utc)
 
@@ -265,7 +265,7 @@ def removereminder(update, context):
 
 
 def timezone(update, context):
-    if len(estrai_argomento(update.message.text))>0:
+    if len(estrai_argomento(update.message.text)) > 0:
         location_name = str(estrai_argomento(update.message.text))
         try:
             # initialize Nominatim API
@@ -297,14 +297,17 @@ def timezone(update, context):
             print('Timezone format not valid:' + location_name)
             context.bot.send_message(update.message.chat.id, 'Timezone format was not correct, use /help for more.')
     else:
-        context.bot.send_message(update.message.chat.id, 'You have to pass your location as argument to set your timezone, use /help for more.')
+        context.bot.send_message(update.message.chat.id,
+                                 'You have to pass your location as argument to set your timezone, use /help for more.')
+
 
 def privacy(update, context):
-    privacy_disclaimer='''When you schedule a reminder this bot stores in a database your id and the id of the message that will be forwarded to you at the reminder expiry, reminder data will be deleted when the message is forwarded\.
-Neither your name nor the content of the message will be saved in our server\.
+    privacy_disclaimer = '''When you schedule a reminder this bot stores in a database your id and the id of the message that will be forwarded to you at the reminder expiry, reminder data will be deleted when the message is forwarded\.
+Neither your username nor the content of the message will be saved in our server\.
 When you set your timezone we don't save your location but just your timezone name and your id\.
 This bot is open source so you can inspect the bot code [here](https://github.com/DavideAlwaysMe/botREMINDbot)\.'''
     context.bot.send_message(update.message.chat.id, privacy_disclaimer, parse_mode='MarkdownV2')
+
 
 def help(update, context):
     help_text = '''Hi, this bot helps you setting up reminders\.
@@ -313,7 +316,7 @@ To use it correctly you should add it in your group\.
 *Available commands*
 \- /remindme _date_ \- Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam\.
 \- /remindingroup _date_ \- Use it replying to a message and the bot will forward it to the group at the desired date or time\.
-\- /reminderslist \- Returns the list of your scheduled reminder and their ids\.
+\- /reminderslist \- Returns the list of your scheduled reminders and their ids\.
 \- /removereminder _id_ \- Use it to unschedule a reminder\.
 \- /timezone _location_ \- Use it to set your timezone, otherwise the reminder date expiry timezone is considered as UTC, you should pass the name of a city as argument and the bot will find your timezone\.
 \- /privacy \- Info about how this bot handle your data\.
