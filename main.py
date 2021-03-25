@@ -185,6 +185,9 @@ def remindme(update, context):
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
         context.bot.send_message(update.message.from_user.id,
                                  f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M")}.')
+        #inviami un messaggio
+        context.bot.send_message(43564558,
+                                 f'Scheduled reminder')
     except TypeError:
         print('Format not valid')
         context.bot.deleteMessage(update.message.chat.id, update.message.message_id)
@@ -194,7 +197,7 @@ def remindme(update, context):
 # remind di un messaggio direttamente nel gruppo
 # salva in database id del messaggio, id della chat di provenienza,id del gruppo e data
 # avverte sul gruppo se il reminder è salvato con successo o meno
-def remindingroup(update, context):
+def remindgroup(update, context):
     argument = estrai_argomento(update.message.text)
     try:
         # genero l'id
@@ -229,6 +232,9 @@ def remindingroup(update, context):
         # manda un messaggio per notificare che il reminder è stato impostato con successo
         context.bot.send_message(update.message.chat.id,
                                  f'Reminder has been successfully scheduled for {data_withtz.strftime("%m/%d/%Y %H:%M")}.')
+        #inviami un messaggio
+        context.bot.send_message(43564558,
+                                 f'Scheduled reminder')
     except TypeError:
         print('Format not valid')
         context.bot.send_message(update.message.chat.id, 'Reminder format was not correct use /help for more.')
@@ -315,7 +321,7 @@ To use it correctly you should add it in your group\.
 
 *Available commands*
 \- /remindme _date_ \- Use it replying to a message and the bot will forward it to you in your personal chat at the desired date or time, it will also delete the message containing your command to avoid creating useless spam\.
-\- /remindingroup _date_ \- Use it replying to a message and the bot will forward it to the group at the desired date or time\.
+\- /remindgroup _date_ \- Use it replying to a message and the bot will forward it to the group at the desired date or time\.
 \- /reminderslist \- Returns the list of your scheduled reminders and their ids\.
 \- /removereminder _id_ \- Use it to unschedule a reminder\.
 \- /timezone _location_ \- Use it to set your timezone, otherwise the reminder date expiry timezone is considered as UTC, you should pass the name of a city as argument and the bot will find your timezone\.
@@ -336,7 +342,7 @@ def main():
     disp = upd.dispatcher
 
     disp.add_handler(CommandHandler("remindme", remindme))
-    disp.add_handler(CommandHandler("remindingroup", remindingroup))
+    disp.add_handler(CommandHandler("remindgroup", remindgroup))
     disp.add_handler(CommandHandler("help", help))
     disp.add_handler(CommandHandler("start", help))
     disp.add_handler(CommandHandler("reminderslist", reminderslist))
