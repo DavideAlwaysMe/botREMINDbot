@@ -5,5 +5,5 @@ Telegram bot to remind later messages.
 docker build --build-arg TOKEN=YOUR_BOT_TOKEN -t botremindbot . 
 ```
 ```
-docker run -v /path/to/database/folder:/database --name botREMINDbot -t -i botremindbot
+docker run -v /path/to/database/folder:/database --name botremindbot -t -i botremindbot --restart unless-stopped
 ```
